@@ -1,0 +1,38 @@
+# =============================================================
+# Mapping config for: Construction PPE Dataset (skcet)
+# Source: https://universe.roboflow.com/skcet-g4h72/construction-ppe-rdhzo
+#
+# Maps this dataset's messy/duplicate class names to OUR canonical
+# class names (the ones used in data/active_classes.yaml).
+#
+# Set a value to `null` to DROP that class entirely during ingestion
+# (e.g. duplicates already covered, or classes we don't care about).
+#
+# NOTE: We map "no boot" / "no boots" / "no gloves" / "no hat" / "no vest"
+# to null (dropped) rather than keeping them as explicit negative classes.
+# Our compliance logic infers "missing" from ABSENCE of a positive
+# detection near a person box, so explicit negative classes aren't
+# needed right now. If you later want explicit negative-class training
+# instead, map these to e.g. "no_helmet", "no_vest" and add matching
+# entries in active_classes.yaml.
+# =============================================================
+
+source_dataset: construction-ppe-skcet
+
+mapping:
+  Gloves: gloves
+  gloves: gloves
+  Helmet: helmet
+  helmet: helmet
+  Human: person
+  Safety Boot: boots
+  boots: boots
+  Safety Vest: vest
+  vest: vest
+  glasses: goggles          # closest canonical match we track
+  hat: null                 # generic hat, not a safety class, drop
+  no boot: null
+  no boots: null
+  no gloves: null
+  no hat: null
+  no vest: null

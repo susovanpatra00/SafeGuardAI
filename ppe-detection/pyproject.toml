@@ -1,0 +1,11 @@
+[project]
+name = "ppe-detection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "opencv-python>=5.0.0.93",
+    "pyyaml>=6.0.3",
+    "ultralytics>=8.4.93",
+]

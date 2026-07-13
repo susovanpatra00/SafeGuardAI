@@ -1,0 +1,26 @@
+# =============================================================
+# train_config.yaml
+# -------------------------------------------------------------
+# Hyperparameters for training. Edit these instead of touching
+# src/training/train.py.
+# =============================================================
+
+# Which pretrained YOLO checkpoint to start from.
+# Smaller = faster, less accurate. Larger = slower, more accurate.
+# Options: yolov8n.pt (nano), yolov8s.pt (small), yolov8m.pt (medium),
+#          yolov8l.pt (large), yolov8x.pt (extra large)
+model_variant: yolov8n.pt
+
+epochs: 100
+imgsz: 640
+batch: 16
+
+# Stop early if validation metrics don't improve for this many epochs
+patience: 20
+
+# null = let Ultralytics auto-select GPU/CPU/MPS.
+# Set explicitly if needed, e.g. "mps" for Apple Silicon, "cpu", or "0" for GPU 0.
+device: mps
+
+# Where trained runs get saved: models/trained/<run_name>/weights/best.pt
+project_dir: models/trained

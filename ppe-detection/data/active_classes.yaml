@@ -1,0 +1,64 @@
+# =============================================================
+# active_classes.yaml
+# -------------------------------------------------------------
+# Single source of truth for which PPE classes are currently
+# part of the model + compliance logic.
+#
+# HOW TO ADD A CLASS:
+#   1. Create data/raw/<class_name>/images/ and labels/
+#   2. Add an entry below with active: true
+#   3. Run scripts/rebuild_dataset.sh
+#   4. Retrain
+#
+# HOW TO REMOVE A CLASS:
+#   1. Set active: false below (keep the raw data folder, don't delete it)
+#   2. Run scripts/rebuild_dataset.sh
+#   3. Retrain
+#
+# NOTES:
+#   - "person" must always stay active. It's the anchor box used
+#     to associate every PPE item with an individual worker.
+#   - required_for_compliance: true means this class must be present
+#     (as its "positive" detection) for a person to be marked compliant.
+#   - Class names here MUST exactly match the folder names under data/raw/
+# =============================================================
+
+classes:
+  person:
+    active: true
+    required_for_compliance: false   # anchor box, not a PPE requirement itself
+    description: "Full human bounding box, used to associate PPE items to a worker"
+
+  helmet:
+    active: true
+    required_for_compliance: true
+    description: "Hard hat / safety helmet"
+
+  vest:
+    active: true
+    required_for_compliance: true
+    description: "High-visibility safety vest"
+
+  boots:
+    active: true
+    required_for_compliance: true
+    description: "Safety boots"
+
+  gloves:
+    active: false
+    required_for_compliance: false
+    description: "Safety gloves (currently disabled for this client)"
+
+  goggles:
+    active: false
+    required_for_compliance: false
+    description: "Safety goggles / eye protection (currently disabled)"
+
+# -------------------------------------------------------------
+# Matching settings used by person_matcher.py during compliance
+# checking. Kept here so behavior tuning doesn't require code edits.
+# -------------------------------------------------------------
+matching:
+  method: "iou"          # options: "iou" or "center_contains"
+  iou_threshold: 0.10     # PPE boxes are small relative to person box, keep low
+  center_contains_fallback: true   # if IoU fails, also try center-point containment
