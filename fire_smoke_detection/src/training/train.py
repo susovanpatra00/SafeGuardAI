@@ -98,13 +98,21 @@ def train(config_path: Path, data_yaml: Path, run_name: str | None,
         exist_ok=False,
     )
 
-    run_dir = Path(project_dir) / run_name
+    # Use the ACTUAL directory Ultralytics saved to (don't reconstruct it —
+    # Ultralytics may resolve `project` under its own runs/ dir).
+    try:
+        run_dir = Path(model.trainer.save_dir)
+    except Exception:
+        run_dir = Path(project_dir) / run_name
     best_weights = run_dir / "weights" / "best.pt"
 
     # Snapshot the exact data.yaml used, so this run stays traceable
-    # even if the dataset/config changes later.
-    if data_yaml.exists():
-        shutil.copy2(data_yaml, run_dir / "data_used.yaml")
+    # even if the dataset/config changes later. Never let this kill the run.
+    try:
+        if data_yaml.exists() and run_dir.is_dir():
+            shutil.copy2(data_yaml, run_dir / "data_used.yaml")
+    except Exception as e:  # noqa: BLE001
+        print(f"  [warn] could not copy data_used.yaml: {e}")
 
     if run_val:
         print("\nRunning final validation pass...")
