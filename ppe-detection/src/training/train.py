@@ -54,7 +54,9 @@ def train(config_path: Path, data_yaml: Path, run_name: str | None):
     batch = cfg.get("batch", 16)
     device = cfg.get("device", None)  # None lets Ultralytics auto-pick
     patience = cfg.get("patience", 20)
-    project_dir = cfg.get("project_dir", "models/trained")
+    workers = cfg.get("workers", 8)
+    cache = cfg.get("cache", False)
+    project_dir = str(Path(cfg.get("project_dir", "models/trained")).resolve())
 
     print(f"Run name:      {run_name}")
     print(f"Model variant: {model_variant}")
@@ -70,6 +72,8 @@ def train(config_path: Path, data_yaml: Path, run_name: str | None):
         batch=batch,
         patience=patience,
         device=device,
+        workers=workers,
+        cache=cache,
         project=project_dir,
         name=run_name,
         exist_ok=False,

@@ -1,0 +1,28 @@
+# =============================================================
+# Mapping config for: Construction-PPE (Ultralytics official dataset)
+# Source: https://docs.ultralytics.com/datasets/detect/construction-ppe
+#
+# Curated dataset from real construction environments, includes boots
+# (unlike the Roboflow "Construction Site Safety" dataset). Treated as
+# our highest-trust source going forward.
+#
+# Negative classes (no_helmet, no_gloves, no_boots, no_goggle) are
+# dropped, same rationale as other mappings — compliance is inferred
+# from absence of a positive detection, not from explicit negative
+# classes.
+# =============================================================
+
+source_dataset: construction-ppe-ultralytics
+
+mapping:
+  helmet: helmet
+  gloves: gloves
+  vest: vest
+  boots: boots
+  goggles: goggles
+  Person: person
+  none: none
+  no_helmet: no_helmet
+  no_goggle: no_goggle
+  no_gloves: no_gloves
+  no_boots: no_boots
