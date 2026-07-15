@@ -1,4 +1,4 @@
-# Fire & Smoke Detection (YOLOv12)
+# Fire & Smoke Detection (YOLO11)
 
 Real-time smoke and fire detection built on Ultralytics YOLO. Ported from
 the `smoke-fire-detection-yolo-v12` notebook into a **config-driven,
@@ -129,7 +129,7 @@ prefixed with the source name so nothing collides), and writes
 python src/training/train.py
 ```
 
-Hyperparameters come from `configs/train_config.yaml` (default `yolo12n.pt`,
+Hyperparameters come from `configs/train_config.yaml` (default `yolo11n.pt`,
 60 epochs, imgsz 640). Runs land in `models/trained/<run_name>/` with a copy
 of the exact `data.yaml` used. A validation pass runs at the end (`--no-val`
 to skip).
@@ -154,6 +154,6 @@ bash scripts/run_train.sh
   `active_classes.yaml` and map some source class to it in a mapping file,
   then re-ingest that source and rebuild.
 - Change the backbone via `model_variant` in `train_config.yaml`
-  (`yolo12s.pt`, `yolo12m.pt`, or older `yolov8n.pt`, etc.).
+  (`yolo11s.pt`, `yolo11m.pt`, or other families like `yolo12n.pt`, `yolov8n.pt`).
 - Set `device` to `mps` (Apple Silicon), `cpu`, or a GPU index like `0`;
   `null` lets Ultralytics auto-select.

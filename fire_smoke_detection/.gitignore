@@ -1,0 +1,13 @@
+# Data (raw downloads, cleaned copies, quarantined images)
+data/
+
+# Trained models and Ultralytics run artifacts
+models/
+runs/
+*.pt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.ipynb_checkpoints/

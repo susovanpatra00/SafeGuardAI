@@ -6,11 +6,11 @@
 # =============================================================
 
 # Which pretrained YOLO checkpoint to start from.
-# The source notebook used YOLOv12 nano (yolo12n.pt).
-# Options: yolo12n.pt (nano), yolo12s.pt (small), yolo12m.pt (medium),
-#          yolo12l.pt (large), yolo12x.pt (extra large)
-# Older families also work: yolov8n.pt, yol11n.pt, etc.
-model_variant: yolo12n.pt
+# Using YOLO11 (matches the Roboflow YOLOv11 dataset export).
+# Options: yolo11n.pt (nano), yolo11s.pt (small), yolo11m.pt (medium),
+#          yolo11l.pt (large), yolo11x.pt (extra large)
+# Other families also work: yolo12n.pt, yolov8n.pt, etc.
+model_variant: yolo11n.pt
 
 epochs: 60
 imgsz: 640
