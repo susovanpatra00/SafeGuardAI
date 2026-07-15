@@ -1,0 +1,29 @@
+# =============================================================
+# train_config.yaml
+# -------------------------------------------------------------
+# Hyperparameters for Smoke & Fire detection training.
+# Edit these instead of touching src/training/train.py.
+# =============================================================
+
+# Which pretrained YOLO checkpoint to start from.
+# The source notebook used YOLOv12 nano (yolo12n.pt).
+# Options: yolo12n.pt (nano), yolo12s.pt (small), yolo12m.pt (medium),
+#          yolo12l.pt (large), yolo12x.pt (extra large)
+# Older families also work: yolov8n.pt, yol11n.pt, etc.
+model_variant: yolo12n.pt
+
+epochs: 60
+imgsz: 640
+batch: 16
+
+# Stop early if validation metrics don't improve for this many epochs.
+patience: 20
+
+# null = let Ultralytics auto-select GPU/CPU/MPS.
+# Set explicitly if needed, e.g. "mps" for Apple Silicon, "cpu", or "0" for GPU 0.
+device: null
+
+verbose: true
+
+# Where trained runs get saved: models/trained/<run_name>/weights/best.pt
+project_dir: models/trained
