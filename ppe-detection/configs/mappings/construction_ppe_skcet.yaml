@@ -31,8 +31,8 @@ mapping:
   vest: vest
   glasses: goggles          # closest canonical match we track
   hat: null                 # generic hat, not a safety class, drop
-  no boot: null
-  no boots: null
-  no gloves: null
+  no boot: no_boots
+  no boots: no_boots
+  no gloves: no_gloves
   no hat: null
-  no vest: null
+  no vest: null              # no dedicated no_vest class in active_classes.yaml

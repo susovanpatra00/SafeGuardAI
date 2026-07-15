@@ -22,43 +22,57 @@
 #     (as its "positive" detection) for a person to be marked compliant.
 #   - Class names here MUST exactly match the folder names under data/raw/
 # =============================================================
-
 classes:
   person:
     active: true
-    required_for_compliance: false   # anchor box, not a PPE requirement itself
-    description: "Full human bounding box, used to associate PPE items to a worker"
+    required_for_compliance: false
 
   helmet:
     active: true
     required_for_compliance: true
-    description: "Hard hat / safety helmet"
 
   vest:
     active: true
     required_for_compliance: true
-    description: "High-visibility safety vest"
 
   boots:
     active: true
     required_for_compliance: true
-    description: "Safety boots"
 
   gloves:
-    active: false
+    active: true
     required_for_compliance: false
-    description: "Safety gloves (currently disabled for this client)"
 
   goggles:
-    active: false
+    active: true
     required_for_compliance: false
-    description: "Safety goggles / eye protection (currently disabled)"
 
+  none:
+    active: true
+    required_for_compliance: false
+
+  no_helmet:
+    active: true
+    required_for_compliance: false
+
+  no_goggle:
+    active: true
+    required_for_compliance: false
+
+  no_gloves:
+    active: true
+    required_for_compliance: false
+
+  no_boots:
+    active: true
+    required_for_compliance: false
+
+  
 # -------------------------------------------------------------
 # Matching settings used by person_matcher.py during compliance
 # checking. Kept here so behavior tuning doesn't require code edits.
 # -------------------------------------------------------------
 matching:
-  method: "iou"          # options: "iou" or "center_contains"
-  iou_threshold: 0.10     # PPE boxes are small relative to person box, keep low
-  center_contains_fallback: true   # if IoU fails, also try center-point containment
+  method: "iou"
+  iou_threshold: 0.10
+  center_contains_fallback: true
