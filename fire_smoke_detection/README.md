@@ -140,6 +140,37 @@ Or all at once:
 bash scripts/run_train.sh
 ```
 
+## 4. Run inference
+
+Detect smoke/fire on an image, a folder, a video, or a webcam. Defaults
+(including the weights path) come from `configs/inference_config.yaml` —
+point `weights:` at the run you want to use.
+
+```bash
+# single image
+python src/inference/detect.py --source sample.jpg
+
+# a whole folder, higher confidence
+python src/inference/detect.py --source data/merged/test/images --conf 0.4
+
+# a video
+python src/inference/detect.py --source fire_clip.mp4
+
+# live webcam (index 0), show a window
+python src/inference/detect.py --source 0 --show
+```
+
+Or via the wrapper:
+
+```bash
+bash scripts/run_inference.sh sample.jpg
+bash scripts/run_inference.sh data/merged/test/images --conf 0.4
+```
+
+Annotated results are written to `runs/predict/`. Add `--save-txt` to also
+save YOLO-format label files, or `--weights <path>` to use a specific
+checkpoint.
+
 ## Adding another dataset later
 
 1. Drop it under `data/external/<name>/` (or `data/raw/<name>/`).
