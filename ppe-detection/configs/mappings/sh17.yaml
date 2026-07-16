@@ -1,0 +1,37 @@
+# =============================================================
+# Mapping config for: SH17 Dataset (Ahmad & Rahimi, University of Windsor)
+# Source: https://github.com/ahmadmughees/SH17dataset
+#
+# NOTE: License is CC BY-NC-SA 4.0 (non-commercial). Confirmed with the
+# user this is being used for an internal/demo model only, not the
+# final client deliverable — the client will supply their own data for
+# the production model. Revisit before shipping anything trained on
+# this data commercially.
+#
+# 8,099 images, 75,994 instances, 17 classes, sourced from Pexels
+# (diverse global industrial/manufacturing environments, not
+# construction-site-specific, but strong volume and quality).
+# =============================================================
+
+source_dataset: sh17
+
+mapping:
+  person: person
+  helmet: helmet
+  safety-vest: vest
+  shoes: boots
+  gloves: gloves
+  glasses: goggles
+
+  # Everything else isn't part of our 6 canonical classes — dropped.
+  ear: null
+  ear-mufs: null
+  face: null
+  face-guard: null
+  face-mask: null
+  foot: null
+  tool: null
+  hands: null
+  head: null
+  medical-suit: null
+  safety-suit: null

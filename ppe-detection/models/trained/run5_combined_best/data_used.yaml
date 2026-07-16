@@ -1,0 +1,17 @@
+path: /home/susovan/SafeGuardAI/ppe-detection/data/merged
+train: train/images
+val: valid/images
+test: test/images
+nc: 11
+names:
+- person
+- helmet
+- vest
+- boots
+- gloves
+- goggles
+- none
+- no_helmet
+- no_goggle
+- no_gloves
+- no_boots
