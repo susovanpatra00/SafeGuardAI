@@ -1,0 +1,36 @@
+# =============================================================
+# Mapping config for a ROBOFLOW export.
+# -------------------------------------------------------------
+# Roboflow exports ship in YOLO format WITH a data.yaml that lists
+# the class names/order for that export. ingest_external.py reads
+# that data.yaml automatically, so you usually only need to map the
+# source's class NAMES -> our canonical names below.
+#
+# Different Roboflow projects use different names/casing/order
+# (e.g. "Fire","Smoke" or "fire","smoke" or an extra "default"
+# class). List every variant you might encounter; unknown source
+# classes are dropped with a warning. Map a name to `null` to
+# explicitly drop it.
+# =============================================================
+
+source_dataset: roboflow-firesmoke
+
+# Roboflow exports include their own data.yaml, so leave source_names
+# unset. (Only needed for sources that ship no data.yaml — see the
+# manual mapping.)
+# source_names: [fire, smoke]
+
+mapping:
+  fire: fire
+  Fire: fire
+  FIRE: fire
+  flame: fire
+  smoke: smoke
+  Smoke: smoke
+  SMOKE: smoke
+  default: null      # some Roboflow exports add a stray 'default' class
+  none: null
+
+# Optional: per-source images to quarantine (relative to the source
+# root, e.g. "train/images/foo.jpg"). Usually empty for Roboflow.
+bad_images: []

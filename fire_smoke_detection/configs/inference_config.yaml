@@ -1,0 +1,27 @@
+# =============================================================
+# inference_config.yaml
+# -------------------------------------------------------------
+# Defaults for running the trained model. Override any of these
+# on the command line (see src/inference/detect.py --help).
+# =============================================================
+
+# Path to the trained weights. Point this at the best.pt of the run
+# you want to use. Update the run name if you retrain.
+weights: runs/detect/models/trained/20260715_0724_smoke-fire/weights/best.pt
+
+# Detection thresholds.
+conf: 0.25          # min confidence to keep a box
+iou: 0.45           # NMS IoU threshold
+imgsz: 640          # inference image size (match training for best results)
+
+# null = auto (GPU if available, else CPU). Or "cpu", "0", "mps".
+device: null
+
+# Where annotated results are written.
+project_dir: runs/predict
+
+# Save options.
+save: true          # save annotated images/video
+save_txt: false     # also save YOLO-format .txt labels per image
+save_conf: false    # include confidence in saved .txt labels
+show: false         # display a live window (needs a GUI/display)

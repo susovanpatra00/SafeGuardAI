@@ -1,0 +1,37 @@
+# =============================================================
+# active_classes.yaml
+# -------------------------------------------------------------
+# Single source of truth for which detection classes are active
+# in the merged dataset + the model.
+#
+# The ORDER of active classes here becomes the YOLO class-id order
+# in the final data/merged/data.yaml. Keep smoke=0, fire=1 to match
+# the original notebook labels unless you intend to retrain fresh.
+#
+# HOW IT FITS TOGETHER:
+#   1. Each dataset you have (a Roboflow export, or your own manual
+#      images) is a "source". You ingest each source with a mapping
+#      file that translates THAT source's class names into the
+#      canonical names below (see configs/mappings/).
+#   2. build_dataset.py reads this file, assigns fresh ids to the
+#      active classes, then merges every ingested source into
+#      data/merged/, remapping to those ids.
+#
+# So mixing Roboflow + manual data is just: ingest each one, then
+# build. No code changes needed to add another source.
+# =============================================================
+
+classes:
+  smoke:
+    active: true
+    description: "Smoke plume / haze"
+
+  fire:
+    active: true
+    description: "Visible flame / fire"
+
+  # Example of a class you could enable later if a source provides it.
+  # You'd also add a mapping entry pointing some source class -> person.
+  # person:
+  #   active: false
+  #   description: "Human bounding box"

@@ -1,0 +1,49 @@
+# =============================================================
+# Mapping config for MANUAL data (the Kaggle D-Fire dataset, or your
+# own hand-labeled images in YOLO format).
+# -------------------------------------------------------------
+# The D-Fire / notebook dataset uses ids 0=smoke, 1=fire and does NOT
+# always ship a data.yaml. So we declare the source class order here
+# via `source_names`; ingest_external.py uses it to turn label ids
+# back into names before remapping to canonical names.
+#
+# If YOUR manual dataset already has a data.yaml, you can delete
+# `source_names` and it'll be read from disk instead.
+# =============================================================
+
+source_dataset: manual-dfire
+
+# Class order of the RAW manual labels (id 0 -> smoke, id 1 -> fire).
+source_names:
+  - smoke
+  - fire
+
+mapping:
+  smoke: smoke
+  fire: fire
+
+# Known-corrupt / mislabeled images to quarantine, relative to the
+# source root. (These are the ones flagged in the original notebook.)
+bad_images:
+  - train/images/PublicDataset01005.jpg
+  - train/images/PublicDataset00864.jpg
+  - train/images/WEB04185.jpg
+  - train/images/WEB02767.jpg
+  - train/images/PublicDataset01036.jpg
+  - train/images/PublicDataset00934.jpg
+  - train/images/WEB06024.jpg
+  - train/images/WEB02729.jpg
+  - train/images/WEB06022.jpg
+  - train/images/WEB06334.jpg
+  - train/images/WEB04554.jpg
+  - train/images/WEB06336.jpg
+  - train/images/WEB03587.jpg
+  - train/images/WEB06082.jpg
+  - train/images/PublicDataset00900.jpg
+  - val/images/WEB02650.jpg
+  - val/images/WEB02614.jpg
+  - val/images/PublicDataset01007.jpg
+  - test/images/WEB10194.jpg
+  - test/images/WEB10116.jpg
+  - test/images/WEB10972.jpg
+  - test/images/WEB10874.jpg
