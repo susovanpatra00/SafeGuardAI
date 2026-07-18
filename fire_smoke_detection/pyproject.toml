@@ -5,7 +5,11 @@ description = "Real-time smoke & fire detection with YOLOv12 (Ultralytics)."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "numpy>=2.4.6",
     "opencv-python>=4.9.0",
+    "opencv-python-headless>=5.0.0.93",
     "pyyaml>=6.0.3",
     "ultralytics>=8.4.93",
+    "websockets>=16.1.1",
+    "yt-dlp>=2026.7.4",
 ]
