@@ -219,23 +219,69 @@ compliance only requires helmet/vest/boots) — `person` mAP50-95: 0.705,
 
 ## 5. Inference
 
+`detect.py` accepts a single image, a single video, a webcam (`--source 0`),
+**or a whole folder** containing a mix of images and videos — it auto-detects
+and processes everything inside.
+
 ```bash
+# single image
 python -m src.inference.detect \
   --weights models/trained/<run_name>/weights/best.pt \
-  --source path/to/image_or_video.jpg \
-  --imgsz 768 \
-  --conf 0.25 \
-  --save
+  --source path/to/image.jpg \
+  --imgsz 768 --conf 0.25 --save
+
+# single video
+python -m src.inference.detect \
+  --weights models/trained/<run_name>/weights/best.pt \
+  --source path/to/video.mp4 \
+  --imgsz 768 --conf 0.25 --save
+
+# webcam (live, displays a window instead of saving — omit --save)
+python -m src.inference.detect \
+  --weights models/trained/<run_name>/weights/best.pt \
+  --source 0
+
+# whole folder of images and/or videos in one call
+python -m src.inference.detect \
+  --weights models/trained/<run_name>/weights/best.pt \
+  --source path/to/folder/ \
+  --imgsz 768 --conf 0.25 --save
 ```
 
-- `--source` accepts an image path, a video path, or `0` for webcam.
-- `--save` writes to `outputs/annotated_<filename>`; omit it to display in a window instead.
-- Output shows each detected person's box in **green (compliant)** or **red (non-compliant, with missing items listed)**, plus individual PPE item boxes in blue.
+- `--source` accepts an image path, a video path, a folder path, or `0` for webcam.
+- `--save` writes to `--output-dir` (default `outputs/`); omit it to display in a window instead (not available for folder mode — folders always save).
+- Output shows each detected person's box in **green (compliant)** or **red (non-compliant, with missing items listed)**, plus individual PPE item boxes in blue. Negative-class detections (`no_helmet`, `no_goggle`, etc.) are intentionally not drawn — they're redundant with the MISSING label and confusing in a demo.
 - `--imgsz` should match whatever `imgsz` was used in training (currently 768) — mismatches hurt small-object detection (helmet, boots) noticeably.
 
 Compliance rules (which classes are required) are read live from
 `data/active_classes.yaml` at inference time — no retraining needed to change
 what counts as "compliant," only to change what the model can *detect*.
+
+### Demo / POC test media
+
+Real (non-dataset) test images and videos for demos live in
+`data/test_samples/{images,videos}/` — gitignored, since this may include
+client-provided or otherwise non-redistributable footage. Drop files there
+and run:
+
+```bash
+WEIGHTS="models/trained/<run_name>/weights/best.pt"
+
+python -m src.inference.detect \
+  --weights "$WEIGHTS" \
+  --source data/test_samples \
+  --imgsz 768 --conf 0.25 \
+  --save --output-dir outputs/poc_demo
+```
+
+Annotated output lands in `outputs/poc_demo/` (also gitignored), ready to
+download and present.
+
+Make sure both are excluded from git if not already:
+```
+data/test_samples/
+outputs/
+```
 
 ---
 

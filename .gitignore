@@ -255,3 +255,5 @@ ppe-detection/runs/
 # Python env for this subproject (if using a per-project venv)
 ppe-detection/.venv/
 ppe-detection/kaggle.json
+ppe-detection/outputs/*
+ppe-detection/data/test_samples/
