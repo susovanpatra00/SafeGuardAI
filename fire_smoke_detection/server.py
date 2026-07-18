@@ -8,7 +8,7 @@ and replies with a small JSON payload describing what it found.
 
 Run on the machine with the GPU / model weights:
 
-    python server.py --weights runs/detect/models/trained/20260715_0724_smoke-fire/weights/best.pt --host 0.0.0.0 --port 8765
+    python server.py --weights runs/detect/models/trained/20260715_0724_smoke-fire/weights/best.pt --host 0.0.0.0 --port 8770
 
 Then point client.py at ws://<this-machine-ip>:8765
 
