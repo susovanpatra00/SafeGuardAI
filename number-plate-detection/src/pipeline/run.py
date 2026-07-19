@@ -1,10 +1,11 @@
 """
-End-to-end pipeline: RTSP frame -> plate detection -> tracking ->
-periodic OCR -> validated log entry.
+End-to-end live pipeline: RTSP frame -> vehicle detection -> distance
+gate -> crop/upscale -> plate detection -> tracking -> periodic OCR ->
+validated log entry.
 
-This is the same "glue file" pattern as your other SafeGuardAI modules
-(alerts/engine.py style) — swap the AlertSink at the bottom for your
-existing alert/notification system when you wire this into the suite.
+Mirrors scripts/test_video.py but reads from a live RTSP stream instead
+of a local file. Swap PlateLogger for your existing SafeGuardAI
+alert/notification system when wiring this into the suite.
 """
 
 import csv
@@ -18,7 +19,9 @@ import yaml
 
 from src.cameras.stream import RTSPStream, StreamConfig
 from src.detector.plate_detector import PlateDetector
-from src.ocr.plate_ocr import PlateOCR
+from src.detector.vehicle_detector import VehicleDetector
+from src.ocr.plate_ocr import PlateOCR, vote_plate_text
+from src.pipeline.cascade import DetectionCascade
 from src.pipeline.tracker import PlateTracker
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -28,6 +31,28 @@ logger = logging.getLogger(__name__)
 def load_config(path: str = "configs/config.yaml") -> dict:
     with open(path) as f:
         return yaml.safe_load(f)
+
+
+def build_cascade(cfg: dict) -> DetectionCascade:
+    vehicle_detector = VehicleDetector(
+        weights_path=cfg["vehicle_detector"]["weights"],
+        conf_threshold=cfg["vehicle_detector"]["conf_threshold"],
+        iou_threshold=cfg["vehicle_detector"]["iou_threshold"],
+        device=cfg["vehicle_detector"]["device"],
+        classes=cfg["vehicle_detector"]["classes"],
+    )
+    plate_detector = PlateDetector(
+        weights_path=cfg["detector"]["weights"],
+        conf_threshold=cfg["detector"]["conf_threshold"],
+        iou_threshold=cfg["detector"]["iou_threshold"],
+        device=cfg["detector"]["device"],
+    )
+    return DetectionCascade(
+        vehicle_detector=vehicle_detector,
+        plate_detector=plate_detector,
+        min_vehicle_height_frac=cfg["distance_gate"]["min_vehicle_height_frac"],
+        crop_upscale_size=cfg["detector"]["crop_upscale_size"],
+    )
 
 
 class PlateLogger:
@@ -60,21 +85,15 @@ def main(config_path: str = "configs/config.yaml"):
     )
     stream.start()
 
-    detector = PlateDetector(
-        weights_path=cfg["detector"]["weights"],
-        conf_threshold=cfg["detector"]["conf_threshold"],
-        iou_threshold=cfg["detector"]["iou_threshold"],
-        device=cfg["detector"]["device"],
-    )
-
+    cascade = build_cascade(cfg)
     ocr = PlateOCR(
-        lang=cfg["ocr"]["lang"],
-        use_angle_cls=cfg["ocr"]["use_angle_cls"],
+        model_name=cfg["ocr"]["model_name"],
+        device=cfg["ocr"]["device"],
         min_confidence=cfg["ocr"]["min_confidence"],
         validation_regex=cfg["validation"]["regex"] if cfg["validation"]["enabled"] else None,
         strip_chars=cfg["validation"]["strip_chars"],
+        format_positions=cfg["validation"].get("format_positions"),
     )
-
     tracker = PlateTracker(
         iou_threshold=cfg["tracking"]["iou_match_threshold"],
         max_missed_frames=cfg["tracking"]["max_missed_frames"],
@@ -100,36 +119,46 @@ def main(config_path: str = "configs/config.yaml"):
             if frame_count % frame_skip != 0:
                 continue
 
-            detections = detector.detect(frame)
-            tracks = tracker.update([d.box for d in detections])
+            cascade_results = cascade.run(frame)
+            vehicle_boxes = [r.vehicle_box for r in cascade_results]
+            tracks = tracker.update(vehicle_boxes)
+            result_by_box = {r.vehicle_box: r for r in cascade_results}
 
             for track in tracks:
                 if track.frames_since_seen > 0:
-                    continue  # not matched this frame
+                    continue
+
+                result = result_by_box.get(track.box)
+                if result is None or result.plate_crop is None:
+                    continue  # vehicle close enough, but no plate found this frame
 
                 due_for_ocr = track.frames_since_ocr >= ocr_interval or track.best_text is None
                 if not due_for_ocr:
                     continue
                 track.frames_since_ocr = 0
 
-                x1, y1, x2, y2 = track.box
-                crop = frame[y1:y2, x1:x2]
-                result = ocr.read(crop)
-                if result is None:
+                ocr_result = ocr.read(result.plate_crop)
+                if ocr_result is None:
                     continue
 
-                if result.confidence > track.best_confidence:
-                    track.best_text = result.text
-                    track.best_confidence = result.confidence
+                track.ocr_history.append((ocr_result.text, ocr_result.confidence))
+                voted_text = vote_plate_text(track.ocr_history, cfg["validation"].get("format_positions"))
+                track.best_text = voted_text
+                is_valid = ocr.validate(voted_text)
 
-                if result.is_valid_format and not track.logged:
-                    plate_logger.log(track.track_id, result.text, result.confidence, result.is_valid_format)
+                # require a few reads before trusting the vote enough to log —
+                # a single read is just that one frame's guess, not yet a consensus
+                enough_reads = len(track.ocr_history) >= cfg["ocr"].get("min_reads_before_log", 2)
+
+                if is_valid and enough_reads and not track.logged:
+                    max_conf = max(c for _, c in track.ocr_history)
+                    plate_logger.log(track.track_id, voted_text, max_conf, is_valid)
                     track.logged = True
                     if cfg["output"]["save_crops"]:
                         crop_path = os.path.join(
-                            cfg["output"]["crop_dir"], f"{track.track_id}_{result.text}.jpg"
+                            cfg["output"]["crop_dir"], f"{track.track_id}_{voted_text}.jpg"
                         )
-                        cv2.imwrite(crop_path, crop)
+                        cv2.imwrite(crop_path, result.plate_crop)
 
     except KeyboardInterrupt:
         logger.info("Shutting down...")

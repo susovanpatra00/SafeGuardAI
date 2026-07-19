@@ -8,21 +8,32 @@ requires-python = ">=3.10,<3.12"
 dependencies = [
     # ── detection ──────────────────────────────────────────
     "ultralytics>=8.3.0",
-    "torch",
-    "torchvision",
+    # pinned to cu124 build — torch 2.13.0+cu130 (default "latest" as of writing)
+    # triggers a SIGFPE crash in Ultralytics' Detect head on A100s during training.
+    # See [tool.uv.sources] below for the index that makes this pin actually stick.
+    "torch==2.5.1",
+    "torchvision==0.20.1",
 
     # ── video ingestion ────────────────────────────────────
-    "opencv-python>=4.9.0",
+    # headless, not opencv-python — avoids a dual-install conflict with
+    # easyocr's own opencv-python-headless dependency (installing both
+    # opencv-python and opencv-python-headless together breaks cv2 imports)
+    "opencv-python-headless>=4.9.0",
 
     # ── ocr ─────────────────────────────────────────────────
-    "paddlepaddle>=2.6.0",
-    "paddleocr>=2.7.0",
+    # Switched from PaddleOCR: 3.x is a full pipeline rewrite (new API,
+    # auto-downloads 5+ models incl. doc-orientation/unwarping we don't need)
+    # and hit a genuine PIR-executor engine bug unrelated to our code.
+    # EasyOCR runs on the torch install we already have working (2.5.1+cu124),
+    # avoiding a second separate CUDA-matched runtime entirely.
+    "fast-plate-ocr[onnx-gpu]>=1.1.0",
 
     # ── glue / utils ────────────────────────────────────────
     "pyyaml>=6.0",
     "numpy<2.0",
     "python-dotenv>=1.0.0",
     "roboflow>=1.1.0",
+    "kaggle>=1.6.0",
 ]
 
 [build-system]
@@ -31,3 +42,12 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true

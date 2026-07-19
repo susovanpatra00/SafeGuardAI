@@ -34,6 +34,9 @@ class Track:
     frames_since_ocr: int = 0
     best_text: str | None = None
     best_confidence: float = 0.0
+    ocr_history: list = field(default_factory=list)  # [(text, confidence), ...] — every
+                                                        # accepted read, used for voting
+                                                        # instead of trusting a single frame
     logged: bool = False
 
 

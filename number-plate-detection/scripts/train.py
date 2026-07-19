@@ -24,7 +24,10 @@ def main():
         project=PROJECT_DIR,
         name=RUN_NAME,
         patience=20,       # early stop if val loss plateaus
-        batch=-1,           # auto batch size based on available VRAM (you have 80GB, this'll go big)
+        batch=64,           # fixed batch size — autobatch (-1) triggers a SIGFPE on some
+                             # torch/CUDA driver combos during its GPU-memory profiling step.
+                             # 64 is conservative for yolov8n @ 640px on an 80GB A100; bump if
+                             # GPU utilization looks low, or drop it if you hit OOM.
         device=0,
     )
 
