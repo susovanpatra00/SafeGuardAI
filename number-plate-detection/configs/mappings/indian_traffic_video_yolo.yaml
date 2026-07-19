@@ -1,0 +1,13 @@
+# Maps source dataset class names -> unified target class names.
+# Source: https://www.kaggle.com/datasets/deepakat002/indian-vehicle-number-plate-yolo-annotation
+# Real traffic video frames (1920x1080), single class "number_plate".
+# Same target class as the Roboflow dataset ("plate"), so normalized
+# outputs from both sources can be merged directly if desired.
+
+source_dataset: "indian-vehicle-number-plate-yolo"
+
+class_map:
+  number_plate: plate
+
+target_classes:
+  - plate

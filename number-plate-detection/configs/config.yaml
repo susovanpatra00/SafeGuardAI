@@ -1,0 +1,82 @@
+# ── RTSP source ──────────────────────────────────────────────
+camera:
+  rtsp_url: "rtsp://<user>:<pass>@<camera-ip>:554/stream1"
+  reconnect_delay_sec: 5
+  frame_skip: 2          # process every Nth frame (RTSP is usually higher fps than needed)
+  target_width: 1280     # resize before inference, keep aspect ratio
+
+# ── vehicle detection (stage 1 of the cascade) ────────────────
+vehicle_detector:
+  weights: "yolov8n.pt"    # plain pretrained COCO weights — cars/trucks/buses/motorcycles
+                            # are already COCO classes, no fine-tuning needed for this stage
+  conf_threshold: 0.4
+  iou_threshold: 0.5
+  device: "cuda:0"
+  # COCO class ids: 2=car, 3=motorcycle, 5=bus, 7=truck
+  classes: [2, 3, 5, 7]
+
+# ── distance gate ──────────────────────────────────────────────
+# Only attempt plate detection on vehicles whose bounding box is at
+# least this fraction of the frame height. Filters out distant cars
+# where the plate would be too small to read anyway — saves compute
+# and avoids garbage low-confidence reads.
+distance_gate:
+  min_vehicle_height_frac: 0.18   # vehicle box must be >= 25% of frame height
+  # tune this against your actual camera's mounting height/angle once
+  # you have real footage — start conservative (higher = only very
+  # close vehicles trigger plate detection), loosen if you're missing
+  # vehicles that are actually readable
+
+# ── plate detection (stage 2, runs only on cropped+upscaled vehicle regions) ──
+detector:
+  weights: "models/plate_detector.pt"
+  conf_threshold: 0.35   # slightly relaxed vs. before — crops are now higher effective
+                          # resolution than the full frame was, so real detections should
+                          # still score reasonably even if not as confident as curated photos
+  iou_threshold: 0.5
+  device: "cuda:0"
+  crop_upscale_size: 640   # cropped vehicle region is resized to this before plate detection
+
+# ── ocr ──────────────────────────────────────────────────────
+ocr:
+  # fast-plate-ocr model name. "european-plates-mobile-vit-v2-model" is what
+  # we validated against the UK test video (4/4 exact matches). Swap to
+  # "global-plates-mobile-vit-v2-model" when testing/deploying against Indian
+  # plates — or a custom fine-tuned model path once/if we train one, via
+  # onnx_model_path + plate_config_path (see fast-plate-ocr docs).
+  model_name: "european-plates-mobile-vit-v2-model"
+  device: "cpu"
+  min_confidence: 0.6
+  # only re-OCR the same tracked plate every N frames instead of every frame
+  ocr_interval_frames: 5
+  # require this many accumulated reads on a track before trusting the voted
+  # consensus text enough to log it — a single read is one frame's guess,
+  # not yet a consensus (only used by the live pipeline, not scripts/test_video.py)
+  min_reads_before_log: 2
+
+
+  
+# ── plate format validation ──────────────────────────────────
+# Currently set for UK test footage (LL DD LLL). Swap regex + format_positions
+# together when testing/deploying against a different region's plates —
+# e.g. Indian format is variable-length so format_positions correction
+# doesn't cleanly apply there (leave it null, rely on regex only).
+validation:
+  enabled: true
+  regex: '^[A-Z]{2}[0-9]{2}[A-Z]{3}$'
+  strip_chars: " -."
+  format_positions: "LLDDLLL"   # position-aware digit/letter correction; null to disable
+
+# ── tracking (avoids re-detecting/re-OCRing the same plate every frame) ──
+tracking:
+  enabled: true
+  iou_match_threshold: 0.3
+  max_missed_frames: 30    # drop track if plate not seen for N frames
+
+# ── logging / output ─────────────────────────────────────────
+output:
+  log_dir: "outputs/logs"
+  save_crops: true
+  crop_dir: "outputs/plate_crops"
+  save_annotated_video: false
+  annotated_video_dir: "outputs/annotated"

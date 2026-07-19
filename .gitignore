@@ -257,3 +257,19 @@ ppe-detection/.venv/
 ppe-detection/kaggle.json
 ppe-detection/outputs/*
 ppe-detection/data/test_samples/
+
+
+
+
+
+
+# =============================================================
+# number-plate-detection
+# =============================================================
+number-plate-detection/kaggle.json
+number-plate-detection/data/external/
+number-plate-detection/data/normalized/
+number-plate-detection/outputs/
+number-plate-detection/inference/
+number-plate-detection/*.pt
+!number-plate-detection/models/plate_detector.pt

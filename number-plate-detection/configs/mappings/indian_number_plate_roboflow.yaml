@@ -1,0 +1,14 @@
+# Maps source dataset class names -> unified target class names.
+# Source: https://universe.roboflow.com/yolox-qcftu/indian-number-plate-keeo5
+# Source has a single class: "number_plate"
+# We standardize it to "plate" so it's consistent if you later merge in
+# other plate datasets that use different class names (e.g. "License_Plate",
+# "Carplate", "number-plate", etc).
+
+source_dataset: "indian-number-plate-keeo5"
+
+class_map:
+  number_plate: plate
+
+target_classes:
+  - plate
