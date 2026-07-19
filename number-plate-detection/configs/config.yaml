@@ -1,0 +1,42 @@
+# ── RTSP source ──────────────────────────────────────────────
+camera:
+  rtsp_url: "rtsp://<user>:<pass>@<camera-ip>:554/stream1"
+  reconnect_delay_sec: 5
+  frame_skip: 2          # process every Nth frame (RTSP is usually higher fps than needed)
+  target_width: 1280     # resize before inference, keep aspect ratio
+
+# ── detection ────────────────────────────────────────────────
+detector:
+  weights: "models/plate_detector.pt"   # fine-tuned YOLO weights, drop in here
+  conf_threshold: 0.45
+  iou_threshold: 0.5
+  device: "cuda:0"        # "cpu" if no GPU
+
+# ── ocr ──────────────────────────────────────────────────────
+ocr:
+  engine: "paddleocr"
+  lang: "en"               # PaddleOCR lang model, switch per plate script
+  use_angle_cls: true      # handles slightly rotated/angled plates
+  min_confidence: 0.6
+  # only re-OCR the same tracked plate every N frames instead of every frame
+  ocr_interval_frames: 5
+
+# ── plate format validation (India default, edit for your region) ──
+validation:
+  enabled: true
+  regex: '^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$'
+  strip_chars: " -."
+
+# ── tracking (avoids re-detecting/re-OCRing the same plate every frame) ──
+tracking:
+  enabled: true
+  iou_match_threshold: 0.3
+  max_missed_frames: 30    # drop track if plate not seen for N frames
+
+# ── logging / output ─────────────────────────────────────────
+output:
+  log_dir: "outputs/logs"
+  save_crops: true
+  crop_dir: "outputs/plate_crops"
+  save_annotated_video: false
+  annotated_video_dir: "outputs/annotated"
