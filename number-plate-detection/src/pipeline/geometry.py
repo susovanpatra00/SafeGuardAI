@@ -19,7 +19,7 @@ def crop_and_upscale(
     frame: np.ndarray,
     box: tuple[int, int, int, int],
     target_size: int,
-    pad_frac: float = 0.1,
+    pad_frac: float = 0.03,
 ) -> tuple[np.ndarray, tuple[int, int, float, float]]:
     """
     Crop `box` out of `frame` with a little padding, then resize to a
