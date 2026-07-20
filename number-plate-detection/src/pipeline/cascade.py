@@ -70,8 +70,21 @@ class DetectionCascade:
                 )
                 continue
 
-            # take the highest-confidence plate detection in this crop
-            best_plate = max(plate_detections, key=lambda d: d.confidence)
+            # a vehicle's own plate sits low on its body (below the windshield),
+            # so a detection near the top of the crop is more likely bleed-in
+            # from the vehicle behind it (crop padding + dense/bumper-to-bumper
+            # traffic) than this vehicle's actual plate — prefer lower candidates
+            crop_h = crop.shape[0]
+            lower_candidates = [
+                d for d in plate_detections
+                if (d.box[1] + d.box[3]) / 2 > crop_h * 0.35
+            ]
+            candidates = lower_candidates if lower_candidates else plate_detections
+            best_plate = max(candidates, key=lambda d: d.confidence)
+
+            # # take the highest-confidence plate detection in this crop
+            # best_plate = max(plate_detections, key=lambda d: d.confidence)
+
             plate_box_frame = map_box_to_frame(best_plate.box, transform)
             plate_crop = PlateDetector.crop(crop, best_plate)
 

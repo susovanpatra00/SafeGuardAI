@@ -1,14 +1,21 @@
 """
-Minimal IOU-based tracker.
+IOU-based tracker using globally-optimal (Hungarian algorithm) assignment.
 
-Not trying to be DeepSORT here — plates don't need appearance embeddings,
-they just need "is this the same box I saw a few frames ago" so we can
-(a) avoid re-OCRing every frame and (b) avoid logging the same plate
-100 times as a car sits in frame.
+Earlier version used greedy matching — each existing track grabbed the
+best available detection in turn, first-come-first-served. In dense,
+overlapping traffic this let an older track "steal" a detection that
+actually belonged to a different nearby vehicle, silently carrying one
+car's OCR history onto a different physical car (visible as the same
+plate label appearing on two different vehicles). Hungarian assignment
+finds the one-to-one pairing across all tracks and detections at once
+that minimizes total mismatch, which avoids that failure mode.
 """
 
 import itertools
 from dataclasses import dataclass, field
+
+import numpy as np
+from scipy.optimize import linear_sum_assignment
 
 
 def iou(box_a, box_b) -> float:
@@ -48,25 +55,36 @@ class PlateTracker:
         self._id_counter = itertools.count(1)
 
     def update(self, detections: list[tuple[int, int, int, int]]) -> list[Track]:
-        unmatched_detections = list(detections)
-        matched_track_ids = set()
+        track_list = list(self.tracks.values())
+        matched_det_indices: set[int] = set()
 
-        for track in self.tracks.values():
-            best_match, best_iou = None, self.iou_threshold
-            for det in unmatched_detections:
-                score = iou(track.box, det)
-                if score > best_iou:
-                    best_match, best_iou = det, score
+        if track_list and detections:
+            cost_matrix = np.ones((len(track_list), len(detections)))
+            for i, track in enumerate(track_list):
+                for j, det in enumerate(detections):
+                    cost_matrix[i, j] = 1.0 - iou(track.box, det)
 
-            if best_match is not None:
-                track.box = best_match
-                track.frames_since_seen = 0
-                track.frames_since_ocr += 1
-                matched_track_ids.add(track.track_id)
-                unmatched_detections.remove(best_match)
-            else:
+            row_indices, col_indices = linear_sum_assignment(cost_matrix)
+
+            matched_track_indices: set[int] = set()
+            for r, c in zip(row_indices, col_indices):
+                # cost <= 1 - iou_threshold means iou >= iou_threshold
+                if cost_matrix[r, c] <= 1.0 - self.iou_threshold:
+                    track = track_list[r]
+                    track.box = detections[c]
+                    track.frames_since_seen = 0
+                    track.frames_since_ocr += 1
+                    matched_track_indices.add(r)
+                    matched_det_indices.add(c)
+
+            for i, track in enumerate(track_list):
+                if i not in matched_track_indices:
+                    track.frames_since_seen += 1
+        else:
+            for track in track_list:
                 track.frames_since_seen += 1
 
+        unmatched_detections = [d for j, d in enumerate(detections) if j not in matched_det_indices]
         for det in unmatched_detections:
             new_id = next(self._id_counter)
             self.tracks[new_id] = Track(track_id=new_id, box=det, frames_since_ocr=999)
