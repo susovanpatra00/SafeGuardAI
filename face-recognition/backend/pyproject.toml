@@ -1,0 +1,15 @@
+[project]
+name = "face-recognition-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "faiss-cpu>=1.14.3",
+    "insightface>=1.0.1",
+    "numpy>=2.4.6",
+    "nvidia-cudnn-cu12>=9.25.0.15",
+    "onnxruntime-gpu==1.19.2",
+    "opencv-python>=5.0.0.93",
+    "psycopg2-binary>=2.9.12",
+    "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.51",
+]
