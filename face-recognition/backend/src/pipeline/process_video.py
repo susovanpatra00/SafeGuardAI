@@ -18,6 +18,7 @@ TODO comment below for exactly where.
 import os
 import cv2
 import time
+import subprocess
 from dataclasses import dataclass
 
 from core.face_analyzer import FaceAnalyzer
@@ -71,8 +72,11 @@ def process_video(
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # OpenCV's mp4v codec isn't decodable by browsers -- write to a temp file
+    # first, then re-encode to H.264 (the actual output_path) with ffmpeg below.
+    raw_path = output_path + ".raw.mp4"
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    writer = cv2.VideoWriter(raw_path, fourcc, fps, (width, height))
 
     session = get_session()
 
@@ -148,6 +152,21 @@ def process_video(
         cap.release()
         writer.release()
         session.close()
+
+    # Re-encode to H.264 so browsers can actually play it inline. -pix_fmt
+    # yuv420p ensures compatibility with Safari/older browsers too.
+    subprocess.run(
+        [
+            "ffmpeg", "-y", "-i", raw_path,
+            "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            output_path,
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    os.remove(raw_path)
 
     duration = time.time() - start_time
 

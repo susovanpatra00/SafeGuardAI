@@ -9,21 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as LogsRouteImport } from './routes/logs'
-import { Route as EnrollRouteImport } from './routes/enroll'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DetectUploadRouteImport } from './routes/detect.upload'
+import { Route as EnrollRouteImport } from './routes/enroll'
+import { Route as LogsRouteImport } from './routes/logs'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as DetectLiveRouteImport } from './routes/detect.live'
+import { Route as DetectUploadRouteImport } from './routes/detect.upload'
 
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LogsRoute = LogsRouteImport.update({
-  id: '/logs',
-  path: '/logs',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnrollRoute = EnrollRouteImport.update({
@@ -31,19 +26,24 @@ const EnrollRoute = EnrollRouteImport.update({
   path: '/enroll',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DetectUploadRoute = DetectUploadRouteImport.update({
-  id: '/detect/upload',
-  path: '/detect/upload',
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DetectLiveRoute = DetectLiveRouteImport.update({
   id: '/detect/live',
   path: '/detect/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DetectUploadRoute = DetectUploadRouteImport.update({
+  id: '/detect/upload',
+  path: '/detect/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -75,12 +75,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/enroll'
-    | '/logs'
-    | '/search'
-    | '/detect/live'
-    | '/detect/upload'
+    '/' | '/enroll' | '/logs' | '/search' | '/detect/live' | '/detect/upload'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/enroll' | '/logs' | '/search' | '/detect/live' | '/detect/upload'
   id:
@@ -104,18 +99,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/logs': {
-      id: '/logs'
-      path: '/logs'
-      fullPath: '/logs'
-      preLoaderRoute: typeof LogsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/enroll': {
@@ -125,18 +113,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnrollRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/detect/upload': {
-      id: '/detect/upload'
-      path: '/detect/upload'
-      fullPath: '/detect/upload'
-      preLoaderRoute: typeof DetectUploadRouteImport
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/detect/live': {
@@ -144,6 +132,13 @@ declare module '@tanstack/react-router' {
       path: '/detect/live'
       fullPath: '/detect/live'
       preLoaderRoute: typeof DetectLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/detect/upload': {
+      id: '/detect/upload'
+      path: '/detect/upload'
+      fullPath: '/detect/upload'
+      preLoaderRoute: typeof DetectUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -160,3 +155,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
