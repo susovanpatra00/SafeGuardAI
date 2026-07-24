@@ -21,7 +21,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+**/backend/lib/
 lib64/
 parts/
 sdist/
@@ -273,3 +273,19 @@ number-plate-detection/outputs/
 number-plate-detection/inference/
 number-plate-detection/*.pt
 !number-plate-detection/models/plate_detector.pt
+
+
+
+
+
+
+# =============================================================
+# face-recognition
+# =============================================================
+face-recognition/backend/models/pretrained/*.faiss
+face-recognition/backend/data/enrolled/
+face-recognition/backend/data/test_images/
+face-recognition/backend/data/uploads/outputs/
+face-recognition/frontend/node_modules/
+face-recognition/frontend/dist/
+face-recognition/backend/data/uploads/
