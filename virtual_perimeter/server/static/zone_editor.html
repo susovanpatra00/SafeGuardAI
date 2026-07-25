@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Set Perimeter Zone - {{CAMERA_ID}}</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #eee; text-align: center; padding: 20px; }
+    h1 { font-size: 20px; font-weight: 500; }
+    #hint { color: #aaa; margin-bottom: 16px; }
+    canvas { border: 2px solid #444; cursor: crosshair; max-width: 100%; }
+    .controls { margin-top: 16px; }
+    button {
+      background: #2d6cdf; color: white; border: none; padding: 10px 20px;
+      border-radius: 6px; font-size: 15px; cursor: pointer; margin: 0 6px;
+    }
+    button:hover { background: #1f5bc4; }
+    button.secondary { background: #444; }
+    button.secondary:hover { background: #333; }
+    #status { margin-top: 14px; font-size: 14px; min-height: 20px; }
+    #status.ok { color: #4caf50; }
+    #status.err { color: #e05a5a; }
+  </style>
+</head>
+<body>
+  <h1>Perimeter zone for camera: <code>{{CAMERA_ID}}</code></h1>
+  <div id="hint">Click at least 3 points on the image to outline the zone. Click "Save Zone" when done.</div>
+  <canvas id="canvas"></canvas>
+  <div class="controls">
+    <button onclick="undoPoint()" class="secondary">Undo last point</button>
+    <button onclick="resetPoints()" class="secondary">Clear all</button>
+    <button onclick="saveZone()">Save Zone</button>
+    <button onclick="loadSnapshot()" class="secondary">Refresh image</button>
+  </div>
+  <div id="status"></div>
+
+  <script>
+    const cameraId = "{{CAMERA_ID}}";
+    const apiKey = "{{API_KEY}}";
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("status");
+    let points = [];
+    let img = new Image();
+
+    function loadSnapshot() {
+      statusEl.textContent = "";
+      // cache-bust so we always get the latest frame, not a cached one
+      img.src = `/snapshot/${cameraId}?key=${encodeURIComponent(apiKey)}&t=${Date.now()}`;
+    }
+
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      redraw();
+    };
+
+    img.onerror = () => {
+      statusEl.textContent = "Could not load a snapshot yet -- make sure the camera is connected and has sent at least one frame.";
+      statusEl.className = "err";
+    };
+
+    function redraw() {
+      ctx.drawImage(img, 0, 0);
+      if (points.length > 0) {
+        ctx.strokeStyle = "#00ff66";
+        ctx.fillStyle = "rgba(0,255,102,0.2)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+        if (points.length >= 3) ctx.closePath();
+        ctx.stroke();
+        if (points.length >= 3) ctx.fill();
+
+        points.forEach(([x, y]) => {
+          ctx.fillStyle = "#00ff66";
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
+    }
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      // account for the canvas being displayed scaled (max-width:100%)
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = Math.round((e.clientX - rect.left) * scaleX);
+      const y = Math.round((e.clientY - rect.top) * scaleY);
+      points.push([x, y]);
+      redraw();
+    });
+
+    function undoPoint() {
+      points.pop();
+      redraw();
+    }
+
+    function resetPoints() {
+      points = [];
+      redraw();
+    }
+
+    async function saveZone() {
+      if (points.length < 3) {
+        statusEl.textContent = "Need at least 3 points to define a zone.";
+        statusEl.className = "err";
+        return;
+      }
+      try {
+        const res = await fetch(`/zone/${cameraId}?key=${encodeURIComponent(apiKey)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ points }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Save failed");
+        }
+        statusEl.textContent = "Zone saved successfully.";
+        statusEl.className = "ok";
+      } catch (e) {
+        statusEl.textContent = "Error: " + e.message;
+        statusEl.className = "err";
+      }
+    }
+
+    loadSnapshot();
+  </script>
+</body>
+</html>
