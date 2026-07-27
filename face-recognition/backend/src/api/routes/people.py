@@ -11,7 +11,8 @@ from typing import Optional, List
 from core.face_analyzer import FaceAnalyzer
 from db.postgres import get_session, Person, Embedding
 from db.faiss_index import FaceIndex
-from api.schemas import PersonResponse, EnrollResponse
+from api.schemas import PersonResponse, EnrollResponse, PersonUpdate
+from utils.image_io import read_image_respecting_exif
 
 router = APIRouter(prefix="/people", tags=["people"])
 
@@ -37,7 +38,7 @@ async def enroll_person(
     with open(photo_path, "wb") as f:
         shutil.copyfileobj(photo.file, f)
 
-    image = cv2.imread(photo_path)
+    image = read_image_respecting_exif(photo_path)
     if image is None:
         raise HTTPException(status_code=400, detail="Could not read uploaded photo")
 
@@ -94,6 +95,26 @@ async def list_people(search: Optional[str] = None, department: Optional[str] = 
             query = query.filter(Person.department == department)
         people = query.order_by(Person.created_at.desc()).all()
         return [PersonResponse.model_validate(p) for p in people]
+    finally:
+        session.close()
+
+
+@router.patch("/{person_id}", response_model=PersonResponse)
+async def update_person(person_id: int, update: PersonUpdate):
+    session = get_session()
+    try:
+        person = session.query(Person).filter(Person.id == person_id).first()
+        if not person:
+            raise HTTPException(status_code=404, detail="Person not found")
+
+        # Only touch fields the caller actually sent -- PATCH semantics, not PUT.
+        update_data = update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(person, field, value)
+
+        session.commit()
+        session.refresh(person)
+        return PersonResponse.model_validate(person)
     finally:
         session.close()
 

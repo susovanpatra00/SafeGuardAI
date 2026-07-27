@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from db.postgres import init_db
-from api.routes import people, detect, logs, dashboard
+from api.routes import people, detect, logs, dashboard, search
 
 app = FastAPI(title="SafeGuardAI Face Recognition API", version="0.1.0")
 
@@ -36,6 +36,7 @@ app.include_router(people.router)
 app.include_router(detect.router)
 app.include_router(logs.router)
 app.include_router(dashboard.router)
+app.include_router(search.router)
 
 # Serve processed images/videos and enrollment photos so the frontend can
 # display them directly via URL, e.g. GET /files/uploads/outputs/123_video.mp4

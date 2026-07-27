@@ -15,6 +15,7 @@ from typing import List
 from core.face_analyzer import FaceAnalyzer
 from core.matcher import FaceMatcher
 from db.postgres import get_session, RecognitionLog
+from utils.image_io import read_image_respecting_exif
 
 COLOR_KNOWN = (255, 217, 0)
 COLOR_UNKNOWN = (0, 0, 255)
@@ -45,7 +46,7 @@ def process_image(
     analyzer = FaceAnalyzer(gpu=gpu)
     matcher = FaceMatcher(threshold=confidence_threshold)
 
-    image = cv2.imread(image_path)
+    image = read_image_respecting_exif(image_path)
     if image is None:
         raise RuntimeError(f"Could not read image: {image_path}")
 

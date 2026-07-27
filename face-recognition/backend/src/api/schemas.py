@@ -33,6 +33,32 @@ class EnrollResponse(BaseModel):
     message: str = "Enrolled successfully"
 
 
+class PersonUpdate(BaseModel):
+    name: Optional[str] = None
+    employee_id: Optional[str] = None
+    role: Optional[str] = None
+    department: Optional[str] = None
+    notes: Optional[str] = None
+
+
+# ---------- Search ----------
+
+class SearchMatchItem(BaseModel):
+    id: int
+    source: str
+    timestamp_in_video: Optional[float]
+    confidence: float  # the ORIGINAL recognition confidence from that log event
+    created_at: datetime
+
+
+class SearchFaceResponse(BaseModel):
+    matched: bool
+    person_id: Optional[int] = None
+    person_name: Optional[str] = None
+    search_confidence: float  # how well the uploaded photo matched the enrolled person
+    matches: List[SearchMatchItem] = []
+
+
 # ---------- Detect ----------
 
 class DetectionItem(BaseModel):
