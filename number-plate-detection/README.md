@@ -1,4 +1,4 @@
-- `PlateLogger` is a CSV stub. Swap it for your own alert or webhook system if you want notifications.# number-plate-detection
+# number-plate-detection
 
 SafeGuardAI module — automatic number plate recognition (ANPR) on a live RTSP feed.
 
@@ -70,4 +70,4 @@ Logged plates land in `outputs/logs/plate_log.csv`, crops in `outputs/plate_crop
 
 - `frame_skip` and `ocr_interval_frames` in the config are your main knobs for GPU load — OCR is the expensive step, so it only re-runs periodically per tracked plate rather than every frame.
 - The tracker (`src/pipeline/tracker.py`) is a minimal IOU matcher, not DeepSORT — sufficient here since plates don't need appearance re-identification within a single camera's short dwell time.
-- `PlateLogger` is a CSV stub — swap it for your existing SafeGuardAI alert/webhook system when integrating into the suite (same interface as `alerts/engine.py` in Quadragen).
+- `PlateLogger` is a CSV stub. Swap it for your own alert or webhook system if you want notifications.
