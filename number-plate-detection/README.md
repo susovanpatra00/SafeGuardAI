@@ -1,4 +1,4 @@
-# number-plate-detection
+- `PlateLogger` is a CSV stub. Swap it for your own alert or webhook system if you want notifications.# number-plate-detection
 
 SafeGuardAI module — automatic number plate recognition (ANPR) on a live RTSP feed.
 
